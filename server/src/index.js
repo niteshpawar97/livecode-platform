@@ -19,7 +19,17 @@ const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 
 app.use(helmet({
-  contentSecurityPolicy: isProduction ? undefined : false
+  contentSecurityPolicy: isProduction ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-eval'", "blob:"],
+      workerSrc: ["'self'", "blob:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:", "blob:"],
+    }
+  } : false
 }));
 app.use(cors({
   origin: CORS_ORIGIN,
