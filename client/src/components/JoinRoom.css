@@ -1,0 +1,139 @@
+.join-room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg-primary);
+  padding: 16px;
+}
+
+.join-room-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.join-room-header h1 {
+  color: var(--accent);
+  margin: 0 0 12px 0;
+  font-size: 24px;
+}
+
+.join-room-card p {
+  color: var(--text-secondary);
+  margin: 0 0 32px 0;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.user-info strong {
+  color: var(--success);
+}
+
+.logout-btn {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid var(--error);
+  border-radius: 4px;
+  color: var(--error);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.logout-btn:hover {
+  background: rgba(244, 71, 71, 0.1);
+}
+
+.input-group {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  border-color: var(--accent);
+}
+
+.room-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.room-input-row input {
+  flex: 1;
+}
+
+.generate-btn {
+  padding: 10px 16px;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.generate-btn:hover {
+  background: var(--border);
+}
+
+.join-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.join-btn:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 480px) {
+  .join-room-card {
+    padding: 24px 16px;
+    border-radius: 8px;
+  }
+
+  .join-room-header h1 {
+    font-size: 20px;
+  }
+}

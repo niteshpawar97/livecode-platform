@@ -1,0 +1,70 @@
+.output-panel {
+  flex: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.clear-btn {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.clear-btn:hover {
+  background: var(--border);
+}
+
+.output-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.output-placeholder {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.output-line {
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding: 1px 0;
+}
+
+.output-error {
+  color: var(--error);
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding: 4px 0;
+}
+
+@media (max-width: 768px) {
+  .output-panel {
+    flex: none;
+    width: 100%;
+    height: 200px;
+    border-top: 1px solid var(--border);
+  }
+}

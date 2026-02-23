@@ -1,0 +1,194 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  gap: 8px;
+}
+
+.toolbar-top {
+  padding: 8px 16px;
+}
+
+.toolbar-bottom {
+  padding: 4px 16px 6px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-right {
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.connected {
+  background: var(--success);
+}
+
+.status-dot.disconnected {
+  background: var(--error);
+}
+
+.room-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.room-label strong {
+  color: var(--text-primary);
+}
+
+.copy-btn {
+  padding: 3px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: var(--border);
+}
+
+.run-btn {
+  padding: 6px 20px;
+  background: var(--success);
+  border: none;
+  border-radius: 6px;
+  color: #1e1e1e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.run-btn:hover {
+  opacity: 0.9;
+}
+
+.shortcut {
+  font-size: 11px;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.leave-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  color: var(--error);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.leave-btn:hover {
+  background: rgba(244, 71, 71, 0.1);
+}
+
+/* Users list in bottom bar */
+.users-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--user-badge-bg);
+  border-left: 2px solid;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.user-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.last-editor {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.last-editor strong {
+  color: var(--accent);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .toolbar-row {
+    padding: 6px 10px;
+  }
+
+  .toolbar-top {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .run-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 16px;
+  }
+
+  .shortcut {
+    display: none;
+  }
+
+  .room-label {
+    font-size: 12px;
+  }
+
+  .copy-btn {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}

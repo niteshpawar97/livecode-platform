@@ -1,0 +1,14 @@
+.code-editor {
+  flex: 3;
+  min-height: 0;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .code-editor {
+    flex: 1;
+    border-right: none;
+    min-height: 200px;
+  }
+}
