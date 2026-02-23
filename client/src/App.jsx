@@ -40,6 +40,7 @@ export default function App() {
   const [users, setUsers] = useState([]);
   const [theme, setTheme] = useState(getInitialTheme);
   const [lastEditor, setLastEditor] = useState(null);
+  const [onlineCount, setOnlineCount] = useState(0);
 
   // Apply theme to document
   useEffect(() => {
@@ -111,6 +112,10 @@ export default function App() {
       setError(data.message);
     }
 
+    function onOnlineCount(data) {
+      setOnlineCount(data.count);
+    }
+
     function onConnectError(err) {
       if (err.message === 'Authentication required' || err.message === 'Invalid or expired token') {
         refreshAccessToken()
@@ -130,6 +135,7 @@ export default function App() {
     socket.on('execution-result', onExecutionResult);
     socket.on('error-message', onErrorMessage);
     socket.on('connect_error', onConnectError);
+    socket.on('online-count', onOnlineCount);
 
     return () => {
       socket.off('room-joined', onRoomJoined);
@@ -139,6 +145,7 @@ export default function App() {
       socket.off('execution-result', onExecutionResult);
       socket.off('error-message', onErrorMessage);
       socket.off('connect_error', onConnectError);
+      socket.off('online-count', onOnlineCount);
     };
   }, []);
 
@@ -244,6 +251,7 @@ export default function App() {
         theme={theme}
         onThemeToggle={handleThemeToggle}
         lastEditor={lastEditor}
+        onlineCount={onlineCount}
       />
       <div className="editor-layout">
         <CodeEditor code={code} onCodeChange={handleCodeChange} theme={theme} />

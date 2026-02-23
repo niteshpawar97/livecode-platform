@@ -7,7 +7,7 @@ function getUserColor(index) {
   return USER_COLORS[index % USER_COLORS.length];
 }
 
-export default function Toolbar({ roomId, users, isConnected, onRun, onLeave, theme, onThemeToggle, lastEditor }) {
+export default function Toolbar({ roomId, users, isConnected, onRun, onLeave, theme, onThemeToggle, lastEditor, onlineCount }) {
   const copyLink = () => {
     const url = new URL(window.location);
     url.searchParams.set('room', roomId);
@@ -35,6 +35,12 @@ export default function Toolbar({ roomId, users, isConnected, onRun, onLeave, th
         </div>
 
         <div className="toolbar-right">
+          {onlineCount > 0 && (
+            <span className="online-count" title="Users online on platform">
+              <span className="online-pulse" />
+              {onlineCount} online
+            </span>
+          )}
           <ThemeToggle theme={theme} onToggle={onThemeToggle} />
           <button className="leave-btn" onClick={onLeave}>
             Leave

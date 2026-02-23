@@ -1,13 +1,19 @@
-import { createOrJoinRoom, leaveRoom, updateCode, getRoom } from './roomManager.js';
+import { createOrJoinRoom, leaveRoom, updateCode, getRoom, getUsersInRoom } from './roomManager.js';
 import { executeCode } from '../sandbox/executor.js';
 import { canExecute, cleanup } from '../sandbox/rateLimiter.js';
 import { MAX_CODE_LENGTH } from '../config/index.js';
+
+function broadcastOnlineCount(io) {
+  io.emit('online-count', { count: io.engine.clientsCount });
+}
 
 export function registerSocketHandlers(io) {
   io.on('connection', (socket) => {
     // socket.data.user is set by socketAuthMiddleware (from JWT)
     const authenticatedUser = socket.data.user;
     console.log(`User connected: ${socket.id} (${authenticatedUser.username})`);
+
+    broadcastOnlineCount(io);
 
     const userRooms = new Set();
 
@@ -19,6 +25,17 @@ export function registerSocketHandlers(io) {
 
       const cleanRoomId = roomId.trim().slice(0, 50);
       const username = authenticatedUser.username;
+
+      // Find and kick old socket of same user in this room (duplicate tab)
+      const existingUsers = getUsersInRoom(cleanRoomId);
+      const oldEntry = existingUsers.find(u => u.username === username);
+      if (oldEntry && oldEntry.id !== socket.id) {
+        const oldSocket = io.sockets.sockets.get(oldEntry.id);
+        if (oldSocket) {
+          oldSocket.leave(cleanRoomId);
+          oldSocket.emit('error-message', { message: 'You joined this room from another tab' });
+        }
+      }
 
       try {
         const { code, users } = createOrJoinRoom(cleanRoomId, socket.id, username);
@@ -90,6 +107,7 @@ export function registerSocketHandlers(io) {
 
       userRooms.clear();
       cleanup(socket.id);
+      broadcastOnlineCount(io);
     });
   });
 }

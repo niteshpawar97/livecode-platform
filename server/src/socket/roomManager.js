@@ -17,6 +17,14 @@ export function createOrJoinRoom(roomId, socketId, username) {
     throw new Error(`Room is full (max ${MAX_ROOM_USERS} users)`);
   }
 
+  // If same username already in room (duplicate tab), remove old socket
+  for (const [existingSocketId, user] of room.users) {
+    if (user.username === username && existingSocketId !== socketId) {
+      room.users.delete(existingSocketId);
+      break;
+    }
+  }
+
   room.users.set(socketId, { id: socketId, username });
 
   return {

@@ -18,6 +18,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
 
+// Trust first proxy (Nginx) so rate limiter gets real client IP from X-Forwarded-For
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
 app.use(helmet({
   contentSecurityPolicy: isProduction ? {
     directives: {
