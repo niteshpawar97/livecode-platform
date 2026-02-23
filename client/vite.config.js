@@ -15,5 +15,14 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'monaco-editor': ['monaco-editor']
+        }
+      }
+    }
   }
 });
