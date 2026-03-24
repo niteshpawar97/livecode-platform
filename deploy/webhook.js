@@ -41,7 +41,7 @@ function deploy() {
 
     // Rebuild & restart container
     console.log('[2/3] docker rebuild...');
-    execSync(`cd ${REPO_DIR} && docker compose up -d --build`, { stdio: 'inherit', timeout: 300000 });
+    execSync(`cd ${REPO_DIR} && docker-compose up -d --build`, { stdio: 'inherit', timeout: 300000 });
 
     // Cleanup old images
     console.log('[3/3] cleanup...');

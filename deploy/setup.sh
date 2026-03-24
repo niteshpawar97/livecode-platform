@@ -56,7 +56,7 @@ systemctl start livecode-webhook
 # 3. First deploy
 echo "[3/4] Running first deploy..."
 cd $REPO_DIR
-docker compose up -d --build
+docker-compose up -d --build
 
 # 4. Print summary
 echo ""
