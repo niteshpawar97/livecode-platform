@@ -20,7 +20,7 @@ import { execSync } from 'node:child_process';
 
 const PORT = process.env.WEBHOOK_PORT || 9000;
 const SECRET = process.env.WEBHOOK_SECRET || 'change-this-secret';
-const REPO_DIR = process.env.REPO_DIR || '/home/deploy/livecode-platform';
+const REPO_DIR = process.env.REPO_DIR || '/home/niketgroup-livecode/htdocs/livecode-platform';
 const BRANCH = process.env.DEPLOY_BRANCH || 'master';
 
 function verifySignature(payload, signature) {

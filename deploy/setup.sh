@@ -7,7 +7,7 @@
 set -e
 
 REPO_URL="https://github.com/niteshpawar97/livecode-platform.git"
-DEPLOY_DIR="/home/deploy"
+DEPLOY_DIR="/home/niketgroup-livecode/htdocs"
 REPO_DIR="$DEPLOY_DIR/livecode-platform"
 WEBHOOK_SECRET="$(openssl rand -hex 20)"
 
