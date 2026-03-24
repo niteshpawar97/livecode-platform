@@ -370,7 +370,7 @@ export default function LandingPage({ onGetStarted, theme, onThemeToggle }) {
             <a href="https://github.com/niteshpawar97/livecode-platform" target="_blank" rel="noopener noreferrer" className="text-content-muted no-underline text-sm hover:text-accent transition-colors">GitHub</a>
           </div>
           <p className="text-[13px] text-content-muted">
-            Built with &#10084;&#65039; by <a href="https://github.com/niteshpawar97" target="_blank" rel="noopener noreferrer" className="text-accent no-underline hover:underline">Nitesh Pawar</a>
+            Built with &#10084;&#65039; by <a href="https://github.com/niteshpawar97" target="_blank" rel="noopener noreferrer" className="text-accent no-underline hover:underline">Nitesh Kadve</a>
           </p>
         </div>
       </footer>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const TAB_ICONS = {
   login: (
@@ -19,6 +20,7 @@ const TAB_ICONS = {
 };
 
 export default function AuthForm({ onAuth }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -148,9 +150,17 @@ export default function AuthForm({ onAuth }) {
           </form>
         </div>
 
-        {/* Bottom text */}
-        <p className="text-center text-xs text-content-muted mt-6">
+        {/* Back to landing + bottom text */}
+        <button onClick={() => navigate('/')}
+          className="flex items-center justify-center gap-1.5 mx-auto mt-6 text-sm text-content-muted bg-transparent border-none cursor-pointer transition-colors hover:text-accent">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+          Back to Home
+        </button>
+        <p className="text-center text-[11px] text-content-muted mt-3">
           Open source &middot; Free forever &middot; No credit card required
+        </p>
+        <p className="text-center text-[11px] text-content-muted mt-2">
+          Built with &#10084;&#65039; by Nitesh Kadve
         </p>
       </div>
     </div>
