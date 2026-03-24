@@ -18,11 +18,14 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY server/package*.json ./
 RUN npm ci --omit=dev
 
-# Copy server source
-COPY server/src ./src
+# Copy server source (with correct ownership)
+COPY --chown=appuser:appgroup server/src ./src
 
 # Copy built client from stage 1
-COPY --from=client-build /app/client/dist ./public
+COPY --chown=appuser:appgroup --from=client-build /app/client/dist ./public
+
+# Fix node_modules ownership
+RUN chown -R appuser:appgroup /app
 
 # Switch to non-root
 USER appuser
