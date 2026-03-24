@@ -10,6 +10,7 @@ import { PORT, CORS_ORIGIN } from './config/index.js';
 import { initDatabase } from './db/index.js';
 import { registerSocketHandlers } from './socket/handler.js';
 import { authRouter } from './api/routes/auth.js';
+import { executeSqlRouter } from './api/routes/executeSql.js';
 import { socketAuthMiddleware } from './api/middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +49,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/execute-sql', executeSqlRouter);
 
 // Production: serve built client files
 if (isProduction) {

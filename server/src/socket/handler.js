@@ -38,12 +38,12 @@ export function registerSocketHandlers(io) {
       }
 
       try {
-        const { code, users } = createOrJoinRoom(cleanRoomId, socket.id, username);
+        const roomData = createOrJoinRoom(cleanRoomId, socket.id, username);
         socket.join(cleanRoomId);
         userRooms.add(cleanRoomId);
 
-        socket.emit('room-joined', { code, users, roomId: cleanRoomId });
-        socket.to(cleanRoomId).emit('user-joined', { username, users });
+        socket.emit('room-joined', { code: roomData.code, sqlCode: roomData.sqlCode, users: roomData.users, roomId: cleanRoomId });
+        socket.to(cleanRoomId).emit('user-joined', { username, users: roomData.users });
 
         console.log(`${username} joined room: ${cleanRoomId}`);
       } catch (err) {
@@ -51,12 +51,13 @@ export function registerSocketHandlers(io) {
       }
     });
 
-    socket.on('code-change', ({ roomId, code }) => {
+    socket.on('code-change', ({ roomId, code, language }) => {
       if (!roomId || !userRooms.has(roomId)) return;
       if (typeof code !== 'string' || code.length > MAX_CODE_LENGTH) return;
 
-      updateCode(roomId, code);
-      socket.to(roomId).emit('code-update', { code, username: authenticatedUser.username });
+      const lang = language === 'sql' ? 'sql' : 'javascript';
+      updateCode(roomId, code, lang);
+      socket.to(roomId).emit('code-update', { code, language: lang, username: authenticatedUser.username });
     });
 
     socket.on('run-code', async ({ roomId }) => {

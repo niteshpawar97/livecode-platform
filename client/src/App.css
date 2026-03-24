@@ -1,69 +1,86 @@
-:root,
-[data-theme="dark"] {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-toolbar: #333333;
-  --text-primary: #d4d4d4;
-  --text-secondary: #858585;
-  --border: #3e3e3e;
-  --accent: #007acc;
-  --error: #f44747;
-  --success: #4ec9b0;
-  --user-badge-bg: #3e3e3e;
+@import "tailwindcss";
+
+/* ─── Theme Colors → Tailwind ─── */
+@theme {
+  --color-surface: var(--bg-primary);
+  --color-surface-alt: var(--bg-secondary);
+  --color-surface-bar: var(--bg-toolbar);
+  --color-content: var(--text-primary);
+  --color-content-muted: var(--text-secondary);
+  --color-line: var(--border);
+  --color-accent: var(--accent);
+  --color-danger: var(--error);
+  --color-ok: var(--success);
+  --color-badge: var(--user-badge-bg);
 }
 
-[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f3f3;
-  --bg-toolbar: #e8e8e8;
-  --text-primary: #1e1e1e;
-  --text-secondary: #6e6e6e;
-  --border: #d4d4d4;
-  --accent: #0066b8;
-  --error: #d32f2f;
-  --success: #2e7d5e;
-  --user-badge-bg: #d4d4d4;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  overflow: hidden;
-}
-
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-}
-
-.editor-layout {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-@media (max-width: 768px) {
-  .editor-layout {
-    flex-direction: column;
+/* ─── CSS Variables (Dark = default, Light = override) ─── */
+@layer base {
+  :root,
+  [data-theme="dark"] {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-toolbar: #333333;
+    --text-primary: #d4d4d4;
+    --text-secondary: #858585;
+    --border: #3e3e3e;
+    --accent: #007acc;
+    --error: #f44747;
+    --success: #4ec9b0;
+    --user-badge-bg: #3e3e3e;
   }
+
+  [data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f3f3;
+    --bg-toolbar: #e8e8e8;
+    --text-primary: #1e1e1e;
+    --text-secondary: #6e6e6e;
+    --border: #d4d4d4;
+    --accent: #0066b8;
+    --error: #d32f2f;
+    --success: #2e7d5e;
+    --user-badge-bg: #d4d4d4;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Syntax Colors (Landing page code mock) */
+  .code-keyword { color: #569cd6; }
+  .code-var { color: #9cdcfe; }
+  .code-string { color: #ce9178; }
+  .code-func { color: #dcdcaa; }
+  .code-punct { color: var(--text-primary); }
+  .code-comment { color: #6a9955; }
+
+  [data-theme="light"] .code-keyword { color: #0000ff; }
+  [data-theme="light"] .code-var { color: #001080; }
+  [data-theme="light"] .code-string { color: #a31515; }
+  [data-theme="light"] .code-func { color: #795e26; }
+  [data-theme="light"] .code-comment { color: #008000; }
 }
 
-.loading-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  height: 100dvh;
-  background: var(--bg-primary);
-  color: var(--text-secondary);
-  font-size: 16px;
+/* ─── Animations (outside layers for global access) ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

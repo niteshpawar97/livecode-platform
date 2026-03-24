@@ -1,9 +1,7 @@
-import './ThemeToggle.css';
-
 export default function ThemeToggle({ theme, onToggle }) {
   return (
     <button
-      className="theme-toggle"
+      className="flex items-center justify-center w-8 h-8 bg-transparent border border-line rounded-md text-content-muted cursor-pointer transition-colors hover:bg-line hover:text-content"
       onClick={onToggle}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >

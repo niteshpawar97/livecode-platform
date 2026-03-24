@@ -8,6 +8,7 @@ export function createOrJoinRoom(roomId, socketId, username) {
   if (!room) {
     room = {
       code: '// Write your JavaScript here\nconsole.log("Hello, World!");\n',
+      sqlCode: '-- Try any query!\nSELECT * FROM employees',
       users: new Map()
     };
     rooms.set(roomId, room);
@@ -29,6 +30,7 @@ export function createOrJoinRoom(roomId, socketId, username) {
 
   return {
     code: room.code,
+    sqlCode: room.sqlCode,
     users: getUsersInRoom(roomId)
   };
 }
@@ -50,10 +52,14 @@ export function leaveRoom(roomId, socketId) {
   };
 }
 
-export function updateCode(roomId, code) {
+export function updateCode(roomId, code, language = 'javascript') {
   const room = rooms.get(roomId);
   if (room) {
-    room.code = code;
+    if (language === 'sql') {
+      room.sqlCode = code;
+    } else {
+      room.code = code;
+    }
   }
 }
 
