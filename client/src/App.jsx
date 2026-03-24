@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, useNavigate, useParams, useSearchParams, Navigate } from 'react-router-dom';
 import { socket } from './socket.js';
 import { useSocket } from './hooks/useSocket.js';
 import { login, register, guestLogin, logout, refreshAccessToken, restoreGuestSession } from './api/auth.js';
@@ -12,150 +13,80 @@ import Toolbar from './components/Toolbar.jsx';
 import LanguageSidebar from './components/LanguageSidebar.jsx';
 import LandingPage from './components/LandingPage.jsx';
 
-function getRoomFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('room');
-}
-
-function updateUrl(newRoomId) {
-  const url = new URL(window.location);
-  if (newRoomId) {
-    url.searchParams.set('room', newRoomId);
-  } else {
-    url.searchParams.delete('room');
-  }
-  window.history.replaceState({}, '', url);
-}
-
 function getInitialTheme() {
   const saved = localStorage.getItem('theme');
   if (saved === 'light' || saved === 'dark') return saved;
   return 'dark';
 }
 
-export default function App() {
+/* ─── Playground (Room) Page ─── */
+function PlaygroundPage({ theme, onThemeToggle }) {
+  const { roomId: urlRoomId } = useParams();
+  const navigate = useNavigate();
   const { isConnected } = useSocket();
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+
   const [roomId, setRoomId] = useState(null);
   const [code, setCode] = useState('');
   const [output, setOutput] = useState([]);
   const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
-  const [theme, setTheme] = useState(getInitialTheme);
   const [lastEditor, setLastEditor] = useState(null);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [showLanding, setShowLanding] = useState(true);
   const [language, setLanguage] = useState('javascript');
   const [sqlResult, setSqlResult] = useState(null);
   const [sqlError, setSqlError] = useState(null);
   const [sqlLoading, setSqlLoading] = useState(false);
-  const [sqlCode, setSqlCode] = useState('-- Try any query! Example: Top 3 highest paid per department\nSELECT\n  d.name AS department,\n  e.name AS employee,\n  e.salary,\n  e.city\nFROM employees e\nINNER JOIN departments d ON e.department_id = d.id\nWHERE e.salary > (\n  SELECT AVG(salary) FROM employees\n)\nORDER BY e.salary DESC');
-  const [sqlMode, setSqlMode] = useState('playground'); // 'playground' | 'challenges'
+  const [sqlCode, setSqlCode] = useState('-- Try any query!\nSELECT\n  d.name AS department,\n  e.name AS employee,\n  e.salary\nFROM employees e\nINNER JOIN departments d ON e.department_id = d.id\nORDER BY e.salary DESC');
+  const [sqlMode, setSqlMode] = useState('playground');
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [verifyResult, setVerifyResult] = useState(null);
   const [challenges, setChallenges] = useState([]);
   const [challengesLoading, setChallengesLoading] = useState(false);
 
-  // Prefetch challenges as soon as user is authenticated (background)
+  // Prefetch challenges
   useEffect(() => {
-    if (!user) return;
     setChallengesLoading(true);
     fetch('/api/execute-sql/challenges')
       .then(r => r.json())
       .then(data => setChallenges(data.challenges || []))
       .catch(() => {})
       .finally(() => setChallengesLoading(false));
-  }, [user]);
-
-  // Apply theme to document
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const handleThemeToggle = useCallback(() => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   }, []);
 
-  // On mount: try to restore session (guest from sessionStorage, registered from refresh token)
+  // Join room on mount
   useEffect(() => {
-    const guestSession = restoreGuestSession();
-    if (guestSession) {
-      setUser(guestSession.user);
-      setAuthLoading(false);
-      return;
-    }
+    if (!urlRoomId) return;
+    socket.connect();
+    socket.emit('join-room', { roomId: urlRoomId });
 
-    refreshAccessToken()
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null))
-      .finally(() => setAuthLoading(false));
-  }, []);
+    return () => {
+      socket.emit('leave-room', { roomId: urlRoomId });
+      socket.disconnect();
+    };
+  }, [urlRoomId]);
 
-  // Auto-join room from URL after auth is ready
-  useEffect(() => {
-    if (authLoading || !user || roomId) return;
-
-    const urlRoom = getRoomFromUrl();
-    if (urlRoom) {
-      socket.connect();
-      socket.emit('join-room', { roomId: urlRoom });
-    }
-  }, [authLoading, user, roomId]);
-
-  // Socket event listeners
+  // Socket listeners
   useEffect(() => {
     function onRoomJoined(data) {
       setCode(data.code);
       if (data.sqlCode) setSqlCode(data.sqlCode);
       setUsers(data.users);
       setRoomId(data.roomId);
-      updateUrl(data.roomId);
       setLastEditor(null);
     }
-
     function onCodeUpdate(data) {
-      if (data.language === 'sql') {
-        setSqlCode(data.code);
-      } else {
-        setCode(data.code);
-      }
-      if (data.username) {
-        setLastEditor(data.username);
-      }
+      if (data.language === 'sql') setSqlCode(data.code);
+      else setCode(data.code);
+      if (data.username) setLastEditor(data.username);
     }
-
-    function onUserJoined(data) {
-      setUsers(data.users);
-    }
-
-    function onUserLeft(data) {
-      setUsers(data.users);
-    }
-
-    function onExecutionResult(data) {
-      setOutput(data.output || []);
-      setError(data.error || null);
-    }
-
-    function onErrorMessage(data) {
-      setError(data.message);
-    }
-
-    function onOnlineCount(data) {
-      setOnlineCount(data.count);
-    }
-
+    function onUserJoined(data) { setUsers(data.users); }
+    function onUserLeft(data) { setUsers(data.users); }
+    function onExecutionResult(data) { setOutput(data.output || []); setError(data.error || null); }
+    function onErrorMessage(data) { setError(data.message); }
+    function onOnlineCount(data) { setOnlineCount(data.count); }
     function onConnectError(err) {
       if (err.message === 'Authentication required' || err.message === 'Invalid or expired token') {
-        refreshAccessToken()
-          .then(() => socket.connect())
-          .catch(() => {
-            setUser(null);
-            setRoomId(null);
-            updateUrl(null);
-          });
+        refreshAccessToken().then(() => socket.connect()).catch(() => navigate('/login'));
       }
     }
 
@@ -178,248 +109,205 @@ export default function App() {
       socket.off('connect_error', onConnectError);
       socket.off('online-count', onOnlineCount);
     };
-  }, []);
-
-  const handleAuth = useCallback(async ({ mode, email, password, username }) => {
-    let data;
-    if (mode === 'login') {
-      data = await login(email, password);
-    } else if (mode === 'register') {
-      data = await register(email, password, username);
-    } else {
-      data = await guestLogin(username);
-    }
-    setUser(data.user);
-  }, []);
-
-  const handleLogout = useCallback(async () => {
-    if (roomId) {
-      socket.emit('leave-room', { roomId });
-      socket.disconnect();
-    }
-    await logout();
-    setUser(null);
-    setRoomId(null);
-    updateUrl(null);
-    setCode('');
-    setOutput([]);
-    setError(null);
-    setUsers([]);
-    setLastEditor(null);
-  }, [roomId]);
-
-  const handleJoin = useCallback((newRoomId) => {
-    socket.connect();
-    socket.emit('join-room', { roomId: newRoomId });
-  }, []);
+  }, [navigate]);
 
   const handleCodeChange = useCallback((newCode) => {
     setCode(newCode);
     setLastEditor(null);
-    if (roomId) {
-      socket.emit('code-change', { roomId, code: newCode, language: 'javascript' });
-    }
-  }, [roomId]);
+    if (urlRoomId) socket.emit('code-change', { roomId: urlRoomId, code: newCode, language: 'javascript' });
+  }, [urlRoomId]);
 
   const handleSqlCodeChange = useCallback((newCode) => {
     setSqlCode(newCode);
     setLastEditor(null);
-    if (roomId) {
-      socket.emit('code-change', { roomId, code: newCode, language: 'sql' });
-    }
-  }, [roomId]);
+    if (urlRoomId) socket.emit('code-change', { roomId: urlRoomId, code: newCode, language: 'sql' });
+  }, [urlRoomId]);
 
   const handleRunSql = useCallback(async () => {
-    setSqlResult(null);
-    setSqlError(null);
-    setSqlLoading(true);
+    setSqlResult(null); setSqlError(null); setSqlLoading(true);
     try {
-      const res = await fetch('/api/execute-sql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: sqlCode }),
-      });
+      const res = await fetch('/api/execute-sql', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: sqlCode }) });
       const data = await res.json();
-      if (!res.ok) {
-        setSqlError(data.error || 'Query failed.');
-      } else {
-        setSqlResult(data);
-      }
-    } catch (err) {
-      setSqlError('Network error. Could not reach the server.');
-    } finally {
-      setSqlLoading(false);
-    }
+      if (!res.ok) setSqlError(data.error || 'Query failed.');
+      else setSqlResult(data);
+    } catch { setSqlError('Network error.'); }
+    finally { setSqlLoading(false); }
   }, [sqlCode]);
 
   const handleSubmitAnswer = useCallback(async () => {
     if (!activeChallenge) return;
-    setSqlLoading(true);
-    setVerifyResult(null);
-    setSqlResult(null);
-    setSqlError(null);
+    setSqlLoading(true); setVerifyResult(null); setSqlResult(null); setSqlError(null);
     try {
-      const res = await fetch('/api/execute-sql/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challengeId: activeChallenge.id, query: sqlCode }),
-      });
+      const res = await fetch('/api/execute-sql/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ challengeId: activeChallenge.id, query: sqlCode }) });
       const data = await res.json();
       setVerifyResult(data);
-      if (data.userResult) {
-        setSqlResult(data.userResult);
-      }
-      if (data.userError) {
-        setSqlError(data.userError);
-      }
-    } catch {
-      setSqlError('Network error.');
-    } finally {
-      setSqlLoading(false);
-    }
+      if (data.userResult) setSqlResult(data.userResult);
+      if (data.userError) setSqlError(data.userError);
+    } catch { setSqlError('Network error.'); }
+    finally { setSqlLoading(false); }
   }, [activeChallenge, sqlCode]);
 
   const handleRun = useCallback(() => {
     if (language === 'sql') {
-      if (sqlMode === 'challenges' && activeChallenge) {
-        handleSubmitAnswer();
-      } else {
-        handleRunSql();
-      }
+      if (sqlMode === 'challenges' && activeChallenge) handleSubmitAnswer();
+      else handleRunSql();
       return;
     }
-    if (roomId) {
-      setOutput([]);
-      setError(null);
-      socket.emit('run-code', { roomId });
-    }
-  }, [roomId, language, handleRunSql, sqlMode, activeChallenge, handleSubmitAnswer]);
+    if (urlRoomId) { setOutput([]); setError(null); socket.emit('run-code', { roomId: urlRoomId }); }
+  }, [urlRoomId, language, handleRunSql, sqlMode, activeChallenge, handleSubmitAnswer]);
 
   const handleLeave = useCallback(() => {
-    if (roomId) {
-      socket.emit('leave-room', { roomId });
-    }
+    if (urlRoomId) socket.emit('leave-room', { roomId: urlRoomId });
     socket.disconnect();
-    setRoomId(null);
-    updateUrl(null);
-    setCode('');
-    setOutput([]);
-    setError(null);
-    setUsers([]);
-    setLastEditor(null);
-  }, [roomId]);
-
-  const handleClearOutput = useCallback(() => {
-    setOutput([]);
-    setError(null);
-  }, []);
-
-  const handleClearSqlOutput = useCallback(() => {
-    setSqlResult(null);
-    setSqlError(null);
-  }, []);
-
-  const handleLanguageChange = useCallback((lang) => {
-    setLanguage(lang);
-  }, []);
-
-  const handleSelectChallenge = useCallback((challenge) => {
-    setActiveChallenge(challenge);
-    setVerifyResult(null);
-    if (challenge) {
-      setSqlCode('-- Q' + challenge.id + ': ' + challenge.title + '\n-- ' + challenge.question + '\n\n');
-    }
-  }, []);
-
-  const handleSqlModeChange = useCallback((mode) => {
-    setSqlMode(mode);
-    setActiveChallenge(null);
-    setVerifyResult(null);
-    setSqlResult(null);
-    setSqlError(null);
-  }, []);
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-dvh bg-surface text-content-muted text-base">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!user && showLanding) {
-    return (
-      <LandingPage
-        onGetStarted={() => setShowLanding(false)}
-        theme={theme}
-        onThemeToggle={handleThemeToggle}
-      />
-    );
-  }
-
-  if (!user) {
-    return <AuthForm onAuth={handleAuth} />;
-  }
-
-  if (!roomId) {
-    return (
-      <JoinRoom
-        onJoin={handleJoin}
-        onLogout={handleLogout}
-        user={user}
-        initialRoomId={getRoomFromUrl()}
-      />
-    );
-  }
+    navigate('/join');
+  }, [urlRoomId, navigate]);
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden">
+    <div className="flex flex-col h-dvh overflow-hidden bg-surface">
+      {/* Premium Toolbar */}
       <Toolbar
-        roomId={roomId}
+        roomId={roomId || urlRoomId}
         users={users}
         isConnected={isConnected}
         onLeave={handleLeave}
         theme={theme}
-        onThemeToggle={handleThemeToggle}
+        onThemeToggle={onThemeToggle}
         lastEditor={lastEditor}
         onlineCount={onlineCount}
       />
       <div className="flex flex-1 min-h-0 max-md:flex-col">
-        {/* Left Sidebar — Language selector */}
         <LanguageSidebar
           language={language}
-          onLanguageChange={handleLanguageChange}
+          onLanguageChange={setLanguage}
           sqlMode={sqlMode}
-          onSqlModeChange={handleSqlModeChange}
+          onSqlModeChange={(mode) => { setSqlMode(mode); setActiveChallenge(null); setVerifyResult(null); setSqlResult(null); setSqlError(null); }}
         />
-
-        {/* Editor + Output area */}
         {language === 'javascript' ? (
           <>
             <CodeEditor code={code} onCodeChange={handleCodeChange} theme={theme} language="javascript" onRun={handleRun} runLabel="Run Code" />
-            <OutputPanel output={output} error={error} onClear={handleClearOutput} />
+            <OutputPanel output={output} error={error} onClear={() => { setOutput([]); setError(null); }} />
           </>
         ) : (
           <>
             {sqlMode === 'challenges' && (
               <div className="w-75 min-w-65 max-w-85 border-r border-line overflow-hidden flex flex-col bg-surface max-md:w-full max-md:max-w-full max-md:h-50 max-md:min-w-0 max-md:border-r-0 max-md:border-b max-md:border-line">
                 <SqlChallenges
-                  challenges={challenges}
-                  loading={challengesLoading}
-                  onSelectChallenge={handleSelectChallenge}
-                  activeChallenge={activeChallenge}
-                  verifyResult={verifyResult}
+                  challenges={challenges} loading={challengesLoading}
+                  onSelectChallenge={(c) => { setActiveChallenge(c); setVerifyResult(null); if (c) setSqlCode('-- Q' + c.id + ': ' + c.title + '\n-- ' + c.question + '\n\n'); }}
+                  activeChallenge={activeChallenge} verifyResult={verifyResult}
                   onClearResult={() => setVerifyResult(null)}
                 />
               </div>
             )}
             <CodeEditor code={sqlCode} onCodeChange={handleSqlCodeChange} theme={theme} language="sql"
-              onRun={handleRun}
-              runLabel={sqlMode === 'challenges' && activeChallenge ? 'Submit Answer' : 'Run Query'} />
-            <SqlOutput result={sqlResult} error={sqlError} loading={sqlLoading} onClear={handleClearSqlOutput} />
+              onRun={handleRun} runLabel={sqlMode === 'challenges' && activeChallenge ? 'Submit Answer' : 'Run Query'} />
+            <SqlOutput result={sqlResult} error={sqlError} loading={sqlLoading} onClear={() => { setSqlResult(null); setSqlError(null); }} />
           </>
         )}
       </div>
     </div>
   );
+}
+
+/* ─── Main App with Routes ─── */
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [theme, setTheme] = useState(getInitialTheme);
+  const navigate = useNavigate();
+
+  // Theme
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const handleThemeToggle = useCallback(() => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  }, []);
+
+  // Restore session
+  useEffect(() => {
+    const guestSession = restoreGuestSession();
+    if (guestSession) {
+      setUser(guestSession.user);
+      setAuthLoading(false);
+      return;
+    }
+    refreshAccessToken()
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  const handleAuth = useCallback(async ({ mode, email, password, username }) => {
+    let data;
+    if (mode === 'login') data = await login(email, password);
+    else if (mode === 'register') data = await register(email, password, username);
+    else data = await guestLogin(username);
+    setUser(data.user);
+    navigate('/join');
+  }, [navigate]);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    setUser(null);
+    navigate('/');
+  }, [navigate]);
+
+  const handleJoin = useCallback((newRoomId) => {
+    navigate('/room/' + newRoomId);
+  }, [navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="relative flex items-center justify-center h-dvh bg-surface overflow-hidden hero-grid">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-accent/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="relative flex flex-col items-center gap-4 animate-[fade-up_0.4s_ease-out]">
+          <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center text-white font-bold text-xl">&#9889;</div>
+          <div className="text-lg font-bold text-content">Live<span className="text-accent">Code</span></div>
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      {/* Landing */}
+      <Route path="/" element={
+        user ? <Navigate to="/join" replace /> :
+        <LandingPage onGetStarted={() => navigate('/login')} theme={theme} onThemeToggle={handleThemeToggle} />
+      } />
+
+      {/* Auth */}
+      <Route path="/login" element={
+        user ? <Navigate to="/join" replace /> :
+        <AuthForm onAuth={handleAuth} />
+      } />
+
+      {/* Join Room */}
+      <Route path="/join" element={
+        !user ? <Navigate to="/login" replace /> :
+        <JoinRoom onJoin={handleJoin} onLogout={handleLogout} user={user} />
+      } />
+
+      {/* Playground */}
+      <Route path="/room/:roomId" element={
+        !user ? <Navigate to="/login" replace /> :
+        <PlaygroundPage theme={theme} onThemeToggle={handleThemeToggle} />
+      } />
+
+      {/* Legacy ?room= redirect */}
+      <Route path="*" element={<LegacyRedirect user={user} theme={theme} onThemeToggle={handleThemeToggle} />} />
+    </Routes>
+  );
+}
+
+/* Handle old ?room=xyz URLs */
+function LegacyRedirect({ user }) {
+  const [searchParams] = useSearchParams();
+  const room = searchParams.get('room');
+  if (room) return <Navigate to={`/room/${room}`} replace />;
+  return <Navigate to={user ? '/join' : '/'} replace />;
 }
